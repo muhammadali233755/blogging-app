@@ -1,24 +1,33 @@
 from datetime import datetime
-from pydantic import BaseModel
+from typing import Optional
+from pydantic import Field, constr
+from schemas.base import ResponseBase, IDMixin, TimestampMixin
 
+class UserBase(ResponseBase):
+    """Base schema for user-related data."""
+    username: constr(min_length=3, max_length=50) = Field(
+        ..., 
+        description="User's unique username", 
+        example="johndoe"
+    )
 
+class UserCreate(UserBase):
+    """Schema for creating a new user."""
+    password: constr(min_length=8) = Field(
+        ..., 
+        description="User's password (min 8 characters)",
+        example="securePassword123"
+    )
+    role_id: int = Field(2, description="User role ID (default: regular user)")
 
+class UserUpdate(ResponseBase):
+    """Schema for updating an existing user."""
+    password: Optional[constr(min_length=8)] = Field(
+        None, 
+        description="User's new password (min 8 characters)",
+        example="newSecurePassword456"
+    )
 
-class UserCreate(BaseModel):
-    username: str
-    password: str
-    role_id: int = 2 
-
-
-class UserResponse(BaseModel):
-    id: int
-    username: str
-    role: str  
-    created_at: datetime
-
-
-    class Config:
-        from_attributes = True  
-        
-class UserUpdate(BaseModel):
-    password:str   | None = None
+class UserResponse(UserBase, IDMixin, TimestampMixin):
+    """Schema for user response data."""
+    role: str = Field(..., description="User's role name", example="USER")
